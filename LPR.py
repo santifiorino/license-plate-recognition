@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import pytesseract
 import skimage
-
 pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files (x86)/Tesseract-OCR/tesseract.exe'
 
 class LPR:
@@ -53,7 +52,7 @@ class LPR:
     def invert_image(self, img):
         return cv2.bitwise_not(img)
 
-    def estimate(self, img, psm=7):
+    def read_license(self, img, psm=7):
         alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         options = "-c tessedit_char_whitelist={}".format(alphanumeric)
         options += " --psm {}".format(psm)
@@ -73,4 +72,4 @@ class LPR:
             txt = pytesseract.image_to_string(final, config=options)
             return txt
         else:
-            return None
+            return "No license plate found"
