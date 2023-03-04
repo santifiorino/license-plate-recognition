@@ -1,6 +1,6 @@
 # License Plate Recognizer (Argentina)
 
-This weekend I set a goal to make a license plate recognizer in 2 days. This is my first image processing project. I've worked with most of the libraries featured on this project before, but for smaller and different things. This is a simple solution, using a very curated set of images (good quality, parked cars, good lighting, etc.). I'm being not so careful with the image filters, thresholds, and the filtering of the contours since I just wanted to learn how all this works- if I wanted to make it work for a bigger quantity of pictures I know exactly which parts I would have to nitpick, and I don't think it's worth it. Now let's get to the procedure.
+I set the goal of making a license plate recognizer in a weekend. This is my first image processing project. It's a simple solution, using a very curated set of images (good quality, parked cars, good lighting, etc.). I'm being not so careful with the image filters, thresholds, and the filtering of the contours, since I just wanted to learn the processes and workflow- if I wanted to make it work for a real project, now I know exactly how to approach it and which parts I would have to nitpick. Now let's get to the procedure.
 
 Let's use this picture as an example.
 
@@ -8,29 +8,58 @@ Let's use this picture as an example.
 
 First step is turning it into a grayscale image:
 
+```python
+def grayscale(img):
+    return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+```
+
 <img src="https://i.imgur.com/EnT7oVB.png"  width="300"/>
 
-Now we can apply a threshold to it, and look how defined the license plate looks:
+Now we apply a threshold. This time I used hard-coded parameters, but in a real-world scenario I would have to be careful in this step. Notice how defined the license plate looks after the threshold:
+
+```python
+def apply_threshold(self, img):
+    return cv2.threshold(img, 170, 255, cv2.THRESH_BINARY_INV)[1]
+```
 
 <img src="https://i.imgur.com/fCcV6Pw.png"  width="300"/>
 
-Then using opencv we detect the contours:
+Then using OpenCV we detect the contours:
+
+```python
+def find_contours(self, img):
+        return cv2.findContours(img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
+```
 
 <img src="https://i.imgur.com/nkhSpCz.png"  width="300"/>
 
-And now we filter them by aspect ratio, width and height. In 21 of the 25 pictures that was enough for keeping just the license plate contours, but in 4 cases like the one below 2 contours were kept. In all of those cases the license plate was below the other shape, so I decided to just keep the lowest one.
+And now we filter them by aspect ratio, width and height. I searched for the real width and height of the license plates, and calculated the aspect ratio. With these filters, we end up with only one contour, that being the license plate.
 
-<img src="https://i.imgur.com/gT2ozsd.png"  width="300"/>
+<img src="https://i.imgur.com/cW1u9Up.png"  width="300"/>
 
 Now we can crop the license plate out of the image:
 
+```python
+def crop_license_plate(self, img, license):
+    x, y, w, h = cv2.boundingRect(license)
+    return img[y:y+h,x:x+w]
+```
+
 <img src="https://i.imgur.com/wOX0ENr.png"  width="300"/>
 
-And once again grayscale it and apply a threshold
+Once again, grayscale it and apply a threshold:
 
 <img src="https://i.imgur.com/iWI84zN.png"  width="300"/>
 
 Now using an skimage function we remove the borders, invert the image, and this is the final result:
+
+```python
+def clear_border(self, img):
+    return skimage.segmentation.clear_border(img)
+
+def invert_image(self, img):
+    return cv2.bitwise_not(img)
+```
 
 <img src="https://i.imgur.com/3lxtMvb.png"  width="300"/>
 
